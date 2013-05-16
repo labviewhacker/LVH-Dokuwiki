@@ -1,0 +1,7 @@
+base lvhhardware
+author Sammy_K
+email 
+date 10-2012
+name LabVIEW Hacker Hardware Tile
+desc LabVIEW Hacker Hardware Tile
+url www.labviewhacker.com

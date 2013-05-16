@@ -1,0 +1,7 @@
+base lvhlandingpage
+author Sammy_K
+email 
+date 10-2012
+name LabVIEW Hacker Landing Page
+desc Top level landing page template for LabVIEW Hacker libraries, hardware, etc.
+url www.labviewhacker.com

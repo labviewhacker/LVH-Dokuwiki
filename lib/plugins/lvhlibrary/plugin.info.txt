@@ -1,0 +1,7 @@
+base lvhlibrary
+author Sammy_K
+email 
+date 11-2012
+name LabVIEW Hacker Library Tile Plugin
+desc LabVIEW Hacker Library Tile Plugin
+url www.labviewhacker.com

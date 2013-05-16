@@ -1,0 +1,7 @@
+base lvhsoftware
+author Sammy_K
+email 
+date 10-2012
+name LVH Software Plugin
+desc LabVIEW Hacker Software Tile Plugin
+url www.labviewhacker.com

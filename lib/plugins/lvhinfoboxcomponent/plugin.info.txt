@@ -1,0 +1,7 @@
+base lvhinfoboxcomponent
+author Sammy_K
+email 
+date 12-2012
+name LabVIEW Hacker Infobox_Component Template
+desc LabVIEW Hacker Infobox_Component Template
+url www.labviewhacker.com

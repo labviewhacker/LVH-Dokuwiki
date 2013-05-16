@@ -1,0 +1,15 @@
+/**
+ * This file provides the main design styles for the page content.
+ *
+ * @author Sam K
+ */
+ 
+ .dokuwiki table.inline {
+	border:0;
+}
+
+samsh1
+{
+color:orange;
+text-align:center;
+}

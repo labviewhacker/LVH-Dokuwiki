@@ -1,0 +1,7 @@
+base lvhfeature
+author Sammy_K
+email 
+date 12-2012
+name LabVIEW Hacker Feature Template
+desc LabVIEW Hacker Feature Template
+url www.labviewhacker.com

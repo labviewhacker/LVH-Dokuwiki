@@ -1,0 +1,7 @@
+base lvhinstructionstep
+author Sammy_K
+email 
+date 12-2012
+name LabVIEW Hacker Instruction Step
+desc Instruction Step Template for LabVIEW Hacker Tutotorials
+url www.labviewhacker.com

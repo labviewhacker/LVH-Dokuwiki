@@ -1,0 +1,8 @@
+﻿base     dokuwiki
+author   Sam Kristoff
+email    labviewhacker@gmail.com
+date     2013-3-10
+name     LabVIEW Hacker DokuWiki Template
+desc     Custom Dokuwiki Template for LabVIEWHacker.com
+url      http://www.labviewhacker.com
+ 
