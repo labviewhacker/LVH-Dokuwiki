@@ -107,6 +107,18 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							$this->subPackets[$subPacketHeaderNum][0] = $value;
 						}
 						break;
+					case (preg_match('/subpacketsize[0-9]*/', $token, $pmSubPacketSize)? true : false ) :
+						foreach($pmSubPacketSize as $iVal)
+						{
+							$subPacketSizeNum = substr($iVal, 13);		//Get Number At End Of String
+							//If Packet Header Has No Data Insert Empty Element For Header
+							if(count($this->subPackets[$subPacketSizeNum]) == 0)
+							{
+								$this->subPackets[$subPacketSizeNum][0] = '';
+							}
+							$this->subPackets[$subPacketSizeNum][1] = $value;
+						}
+						break;
 					case (preg_match('/subpacketdetails[0-9]*/', $token, $pmSubPacketDetails)? true : false ) :
 						foreach($pmSubPacketDetails as $iVal)
 						{
@@ -116,7 +128,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							{
 								$this->subPackets[$subPacketDetailsNum][0] = '';
 							}
-							$this->subPackets[$subPacketDetailsNum][1] = $value;
+							$this->subPackets[$subPacketDetailsNum][2] = $value;
 						}
 						//$this->detailedText[] = $value;
 						break;
@@ -134,6 +146,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 			** Build Subpacket Details
 			********************************************************************************************************************************************/				
 			$packetBreakdown = '';
+			$packetSize = 0;
 			foreach($this->subPackets as $subPacketVal)
 			{
 				$packetBreakdown .= "				
@@ -142,14 +155,23 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 						 " . $subPacketVal[0] . "
 					  </td>
 					  <td class='subPacketDetailsCell'>
-						 " . $subPacketVal[1] . "
+						 " . $subPacketVal[2] . "
 					  </td>
 				   </tr>";
+				 $packetSize += $subPacketVal[1];
 			}
+			
+			//Convert Packet Size From Bits To Bytes
+			$partialByte = 0;
+			if( ($packetSize % 8) > 0)
+			{
+				$partialByte = 1;
+			}
+			$packetSize = floor($packetSize / 8) + $partialByte;
 			
 			
 				//Build Array To Send To Renderer
-				$retVal = array($state, $this->name, $this->description, $this->size, $this->format, $packetBreakdown);
+				$retVal = array($state, $this->name, $this->description, $this->size, $this->format, $packetBreakdown, $packetSize);
 				
 				//Clear Variables That Will Be Resused Here If Neccissary
 				$this->name = '';
@@ -201,7 +223,27 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				 $instSize = $data[3];
 				 $instFormat = $data[4];
 				 $instPacketBreakdown = $data[5];
+				 $instPacketSize = $data[6];
+				 
+				 
+				 /************************************************************
+				 * Variables For HTML Generation
+				 *************************************************************/
+				 $numCols = $instPacketSize;
 				 				
+								
+				/************************************************************
+				 * Helper Functions For HTML Generation
+				 *************************************************************/
+				 $formatHeader = '';
+				 for($i=$instPacketSize; $i>=0; $i--)
+				 {
+					$formatHeader .=
+						"<td>
+						  <center>" . $i . "</center>
+						</td>";
+				 }				 
+				 
 				$renderer->doc .= "
 					<head>
 							<style type='text/css'>
@@ -273,11 +315,10 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							<tr>
 								<td class='subPacketHeaderCell'>
 									Format
-								</td>
-								<td class='packetFormatCell'>
-									" . $instFormat . "
-								</td>
-							</tr>							
+								</td>	
+								" . $formatHeader . "								
+							</tr>	
+								
 								" . $instPacketBreakdown  . "
 						</table>
 					</body>				
