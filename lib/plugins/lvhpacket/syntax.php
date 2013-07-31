@@ -142,36 +142,96 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				break;
 			case DOKU_LEXER_EXIT :
 			
-			/********************************************************************************************************************************************
-			** Build Subpacket Details
-			********************************************************************************************************************************************/				
-			$packetBreakdown = '';
-			$packetSize = 0;
-			foreach($this->subPackets as $subPacketVal)
-			{
-				$packetBreakdown .= "				
-				   <tr>
-					  <td class='subPacketHeaderCell'>
-						 " . $subPacketVal[0] . "
-					  </td>
-					  <td class='subPacketDetailsCell'>
-						 " . $subPacketVal[2] . "
-					  </td>
-				   </tr>";
-				 $packetSize += $subPacketVal[1];
-			}
-			
-			//Convert Packet Size From Bits To Bytes
-			$partialByte = 0;
-			if( ($packetSize % 8) > 0)
-			{
-				$partialByte = 1;
-			}
-			$packetSize = floor($packetSize / 8) + $partialByte;
-			
+				/********************************************************************************************************************************************
+				** Build Subpacket Details
+				********************************************************************************************************************************************/				
+				$packetBreakdown = '';
+				$packetSize = 0;
+				
+				//Count Packet Size
+				foreach($this->subPackets as $subPacketVal)
+				{
+					$packetSize += $subPacketVal[1];
+				}
+				
+				//Calculate Num Cols
+				$numCols = ($packetSize+1)*8;
+				
+				//Build Packet Breakdown HTML
+				foreach($this->subPackets as $subPacketVal)
+				{
+					$packetBreakdown .= "				
+					   <tr>
+						  <td class='subPacketHeaderCell'>
+							 " . $subPacketVal[0] . "
+						  </td>
+						  <td class='subPacketDetailsCell' colspan='" . ($numCols) . "'>
+							 " . $subPacketVal[2] . "
+						  </td>
+					   </tr>";					 
+				}
+				/************************************************************
+				 * Helper Functions For HTML Generation
+				 *************************************************************/
+					 
+				//Convert Packet Size From Bits To Bytes
+				$partialByte = 0;
+				if( ($packetSize % 8) > 0)
+				{
+					$partialByte = 1;
+				}
+				$packetSize = floor($packetSize / 8) + $partialByte;
+				
+				//Create Format Header HTML
+				$formatHeader = "
+								<tr>
+								<td class='subPacketHeaderCell' rowspan='2'>
+									Format
+								</td>";
+				//Add Packet Numbers
+				for($i=$packetSize; $i>=0; $i--)
+				{
+					$formatHeader .="
+									<td colspan='8'>
+										<center>" . $i . "</center>	
+									</td>";
+				}	
+				
+				//Add Bit Numbers
+				$formatHeader .="</tr>
+								 <tr>";
+								
+				for($i=$packetSize; $i>=0; $i--)
+				{
+					$formatHeader .="
+								<td>
+									<center>7</center>
+								</td>
+								<td>
+									<center>6</center>
+								</td>
+								<td>
+									<center>5</center>
+								</td>
+								<td>
+									<center>4</center>
+								</td>
+								<td>
+									<center>3</center>
+								</td>
+								<td>
+									<center>2</center>
+								</td>
+								<td>
+									<center>1</center>
+								</td>
+								<td>
+									<center>0</center>
+								</td>";
+				}	
 			
 				//Build Array To Send To Renderer
-				$retVal = array($state, $this->name, $this->description, $this->size, $this->format, $packetBreakdown, $packetSize);
+				$retVal = array($state, $this->name, $this->description, $this->size, $formatHeader, $packetBreakdown, $numCols);
 				
 				//Clear Variables That Will Be Resused Here If Neccissary
 				$this->name = '';
@@ -223,27 +283,13 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				 $instSize = $data[3];
 				 $instFormat = $data[4];
 				 $instPacketBreakdown = $data[5];
-				 $instPacketSize = $data[6];
+				 $instNumCols = $data[6];
 				 
 				 
 				 /************************************************************
 				 * Variables For HTML Generation
 				 *************************************************************/
-				 $numCols = $instPacketSize;
-				 				
-								
-				/************************************************************
-				 * Helper Functions For HTML Generation
-				 *************************************************************/
-				 $formatHeader = '';
-				 for($i=$instPacketSize; $i>=0; $i--)
-				 {
-					$formatHeader .=
-						"<td>
-						  <center>" . $i . "</center>
-						</td>";
-				 }				 
-				 
+							 
 				$renderer->doc .= "
 					<head>
 							<style type='text/css'>
@@ -255,7 +301,6 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 									border-style:solid;	
 									border-spacing:0; 
 									border-width:0px;
-									border-radius:20px;
 									border-bottom: solid 2px #CCCCCC;
 								}
 								
@@ -292,7 +337,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 					<body>
 						<table class='packetTable'>
 							<tr>								
-								<td class='packetNameCell' colspan='2'>
+								<td class='packetNameCell' colspan='" . ($instNumCols+1) . "'>
 									<center>" . $instName . "</center>
 								</td>
 							</tr>
@@ -300,7 +345,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 								<td class='subPacketHeaderCell'>
 									Description
 								</td>
-								<td>
+								<td colspan='" . ($instNumCols) . "'>
 									" . $instDescription . "
 								</td>
 							</tr>
@@ -308,18 +353,12 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 								<td class='subPacketHeaderCell'>
 									Size
 								</td>
-								<td>
+								<td colspan='" . ($instNumCols) . "'>
 									" . $instSize . "
 								</td>
-							</tr>
-							<tr>
-								<td class='subPacketHeaderCell'>
-									Format
-								</td>	
-								" . $formatHeader . "								
-							</tr>	
-								
-								" . $instPacketBreakdown  . "
+							</tr>								
+							" . $instFormat . "									
+							" . $instPacketBreakdown  . " 
 						</table>
 					</body>				
 				";		
