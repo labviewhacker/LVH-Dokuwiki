@@ -100,10 +100,10 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 					case 'format':						
 						$this->format = $value;
 						break;
-					case (preg_match('/subpacketheader[0-9]*/', $token, $pmSubpacketHeader)? true : false ) :						
+					case (preg_match('/subpacketid[0-9]*/', $token, $pmSubpacketHeader)? true : false ) :						
 						foreach($pmSubpacketHeader as $iVal)
 						{
-							$subPacketHeaderNum = substr($iVal, 15);		//Get Number At End Of String
+							$subPacketHeaderNum = substr($iVal, 11);		//Get Number At End Of String
 							$this->subPackets[$subPacketHeaderNum][0] = $value;
 						}
 						break;
@@ -155,7 +155,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				}
 				
 				//Calculate Num Cols
-				$numCols = ($packetSize+1)*8;
+				$numCols = ($packetSize)*8;	
 				
 				//Build Packet Breakdown HTML
 				foreach($this->subPackets as $subPacketVal)
@@ -180,16 +180,17 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				{
 					$partialByte = 1;
 				}
-				$packetSize = floor($packetSize / 8) + $partialByte;
+				
+				$packetSize = (floor($packetSize / 8) + $partialByte);  //Number of full bytes needed to hold the entire packet.
 				
 				//Create Format Header HTML
 				$formatHeader = "
 								<tr>
-								<td class='subPacketHeaderCell' rowspan='2'>
+								<td class='subPacketHeaderCell' rowspan='3'>
 									Format
 								</td>";
-				//Add Packet Numbers
-				for($i=$packetSize; $i>=0; $i--)
+				//Add Byte Numbers
+				for($i=($packetSize-1); $i>=0; $i--)
 				{
 					$formatHeader .="
 									<td colspan='8'>
@@ -201,7 +202,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				$formatHeader .="</tr>
 								 <tr>";
 								
-				for($i=$packetSize; $i>=0; $i--)
+				for($i=($packetSize-1); $i>=0; $i--)
 				{
 					$formatHeader .="
 								<td>
@@ -229,7 +230,21 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 									<center>0</center>
 								</td>";
 				}	
-			
+				
+				$formatHeader .="</tr>";
+								 
+				$packetFormatID = "<tr>";
+				//Build Packet Format ID Row				
+				for($i=($packetSize-1); $i>=0; $i--)
+				{
+					$packetFormatID .= " <td colspan='" . $this->subPackets[$i][1] . "'>
+											<center>" . $this->subPackets[$i][0] . "</center>
+										</td>";
+				}
+				$packetFormatID .= "</tr>";
+				
+				$formatHeader .=$packetFormatID;
+				
 				//Build Array To Send To Renderer
 				$retVal = array($state, $this->name, $this->description, $this->size, $formatHeader, $packetBreakdown, $numCols);
 				
