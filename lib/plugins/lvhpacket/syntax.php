@@ -268,7 +268,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							else
 							{
 								//Add Partial ID To Current Row
-								$formatRows = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . $this->subPackets[$idNum][0] . "</center></td></tr><tr>" . $formatRows;
+								$formatRows = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . $this->subPackets[$idNum][0] . "</center></td>" . $formatRows;
 								$partialBitsUsed = $idBitsRemaining;
 								$idBitsRemaining = 0;
 							}
@@ -276,11 +276,13 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 						else
 						{
 							//All IDs Have Been Added.  Pad The Rest Of The Row
-							$formatRows = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . "PADDING TEST" . "</center></td></tr><tr>" . $formatRows;
+							$formatRows = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . "N/A" . "</center></td>" . $formatRows;
+							$idBitsRemaining = 0;
 						}
 						
 						//Prevent This Loop From Grinding Forever
-						if($loopCountSafty > 256)
+						$loopCountSafty++;
+						if($loopCountSafty > 100)
 						{
 							break;
 						}
