@@ -310,7 +310,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				//Build TOC
 				
 				//Build Array To Send To Renderer
-				$retVal = array($state, $nameRow, $descriptionRow, $sizeRow, $formatRows, $details, $numCols);
+				$retVal = array($state, $this->name, $nameRow, $descriptionRow, $sizeRow, $formatRows, $details, $numCols);
 				
 				//Clear Variables That Will Be Resused Here If Neccissary
 				$this->name = '';
@@ -357,17 +357,18 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				//$renderer->doc.= '</table></body></HTML>';
 				
 				//Separate Data
-				 $instNameRow = $data[1];
-				 $instDescriptionRow = $data[2];
-				 $instSizeRow = $data[3];
-				 $instFormatRow = $data[4];
-				 $instDetails = $data[5];
-				 $instNumCols = $data[6];
+				$instPacketName = $data[1];
+				$instNameRow = $data[2];
+				$instDescriptionRow = $data[3];
+				$instSizeRow = $data[4];
+				$instFormatRow = $data[5];
+				$instDetails = $data[6];
+				$instNumCols = $data[7];
 				 
 				 
-				 /************************************************************
-				 * Variables For HTML Generation
-				 *************************************************************/
+				/************************************************************
+				* Variables For HTML Generation
+				*************************************************************/
 				
 
 				//Add Packet Table
@@ -479,7 +480,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 						</table>												
 						</table>
 						
-						<a id='".trim(str_replace(' ', '', $instName))."'></a>
+						<a id='".trim(str_replace(' ', '', $instPacketName))."'></a>
 						<table class='packetTable'>
 							" . $instNameRow
 							  . $instDescriptionRow
@@ -490,7 +491,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 					</body>";
 
 				//Add To Packet TOC
-				$renderer->doc = preg_replace("/<!--TOC-->/", "<tr><td class=packetTOCCell><a href='#".trim(str_replace(' ', '', $instName))."'>" . $instName ." </a></tr></td><!--TOC-->", $renderer->doc, 1);					
+				$renderer->doc = preg_replace("/<!--TOC-->/", "<tr><td class=packetTOCCell><a href='#".trim(str_replace(' ', '', $instPacketName))."'>" . $instPacketName ." </a></tr></td><!--TOC-->", $renderer->doc, 1);					
 				
 				break;
 			  case DOKU_LEXER_SPECIAL :
