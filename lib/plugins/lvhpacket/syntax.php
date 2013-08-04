@@ -52,6 +52,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 	protected $size = '';	
 	protected $format = '';	
 	protected $subPackets = array();	
+	protected $allPackets = array();
 	
     /********************************************************************************************************************************************
 	** Plugin Configuration
@@ -104,7 +105,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 						foreach($pmSubpacketHeader as $iVal)
 						{
 							$subPacketHeaderNum = substr($iVal, 11);		//Get Number At End Of String
-							$this->subPackets[$subPacketHeaderNum][0] = $value;
+							$this->subPackets[$subPacketHeaderNum][0] = $value;							
 						}
 						break;
 					case (preg_match('/subpacketsize[0-9]*/', $token, $pmSubPacketSize)? true : false ) :
@@ -145,7 +146,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				/********************************************************************************************************************************************
 				** Build Subpacket Details
 				********************************************************************************************************************************************/				
-				$packetBreakdown = '';
+				$details = '';
 				$packetSize = 0;
 				
 				//Count Packet Size
@@ -160,12 +161,12 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				//Build Packet Breakdown HTML
 				foreach($this->subPackets as $subPacketVal)
 				{
-					$packetBreakdown .= "				
+					$details .= "				
 					   <tr>
 						  <td class='subPacketHeaderCell'>
 							 " . $subPacketVal[0] . "
 						  </td>
-						  <td class='subPacketDetailsCell' colspan='" . ($numCols) . "'>
+						  <td class='subPacketDetailsCell' colspan='32'>
 							 " . $subPacketVal[2] . "
 						  </td>
 					   </tr>";					 
@@ -179,74 +180,137 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				if( ($packetSize % 8) > 0)
 				{
 					$partialByte = 1;
+				}				
+				$packetNumBytes = (floor($packetSize / 8) + $partialByte);  //Number of full bytes needed to hold the entire packet.
+				
+				/********************************************************
+				* Name Row
+				*********************************************************/
+				$nameRow = "<tr>								
+								<td class='packetNameCell' colspan='33'>
+									<center>" . $this->name . "</center>
+								</td>
+							</tr>";
+							
+				/********************************************************
+				* Description Row
+				*********************************************************/
+				$descriptionRow =  "<tr>
+										<td class='subPacketHeaderCell'>
+											Description
+										</td>
+										<td class='packetDescriptionCell' colspan='32'>
+											" . $this->description . "
+										</td>
+									</tr>";
+				/********************************************************
+				* Size Row
+				*********************************************************/
+				$sizeRow =  "	<tr>
+									<td class='subPacketHeaderCell'>
+										Size
+									</td>									
+									<td class='packetSizeCell' colspan='32'>
+										" . $this->size . "
+									</td>
+								</tr>";
+							
+				/********************************************************
+				* Format Rows
+				*********************************************************/
+				$numFormatRows = 0;
+				//Calculate Number Of Rows Needed For Format
+				if( ($packetNumBytes % 4) > 0)
+				{
+					$numFormatRows = (floor($packetNumBytes / 4)) + 1;
+				}
+				else
+				{
+					$numFormatRows = floor($packetNumBytes / 4);
 				}
 				
-				$packetSize = (floor($packetSize / 8) + $partialByte);  //Number of full bytes needed to hold the entire packet.
-				
-				//Create Format Header HTML
-				$formatHeader = "
-								<tr>
-								<td class='subPacketHeaderCell' rowspan='3'>
-									Format
-								</td>";
-				//Add Byte Numbers
-				for($i=($packetSize-1); $i>=0; $i--)
+				//Build Each Packet Format Row
+				$formatRows = "";
+				$partialBitsUsed = 0;
+				$idNum = 0;
+				for($i=0; $i<$numFormatRows; $i++)
 				{
-					$formatHeader .="
-									<td colspan='8'>
-										<center>" . $i . "</center>	
-									</td>";
-				}	
-				
-				//Add Bit Numbers
-				$formatHeader .="</tr>
-								 <tr>";
+					//Build It Backwards
+					
+					//Build ID Row
+					$idBitsRemaining = 32;					
+					$loopCountSafty = 0;
+					
+					//Close ID Row
+					$formatRows = "</tr>" . $formatRows;
+					
+					//TODO - Add Bits and Bytes and padding at the end (right now we probably read off the end of the array when looking for sub packet sizes ans ids
+					
+					//Add Format ID Row
+					while($idBitsRemaining > 0)
+					{
+						//If There Are More IDs To Add Do So
+						if($this->subPackets[$idNum][1] != '')
+						{
+							//Check If There Is Room For The Entire ID On This Format Row
+							$idBitsNeeded = ($this->subPackets[$idNum][1]-$partialBitsUsed);	//Number Of Bit Cols Needed For Next ID Or Partial ID
+							
+							if( $idBitsNeeded <= $idBitsRemaining )
+							{
 								
-				for($i=($packetSize-1); $i>=0; $i--)
-				{
-					$formatHeader .="
-								<td>
-									<center>7</center>
-								</td>
-								<td>
-									<center>6</center>
-								</td>
-								<td>
-									<center>5</center>
-								</td>
-								<td>
-									<center>4</center>
-								</td>
-								<td>
-									<center>3</center>
-								</td>
-								<td>
-									<center>2</center>
-								</td>
-								<td>
-									<center>1</center>
-								</td>
-								<td>
-									<center>0</center>
-								</td>";
-				}	
-				
-				$formatHeader .="</tr>";
-								 
-				$packetFormatID = "<tr>";
-				//Build Packet Format ID Row				
-				for($i=($packetSize-1); $i>=0; $i--)
-				{
-					$packetFormatID .= " <td colspan='" . $this->subPackets[$i][1] . "'>
-											<center>" . $this->subPackets[$i][0] . "</center>
-										</td>";
+								//Add Entire ID To Current Row
+								$formatRows = "<td class='packetIdCell' colspan='" . $idBitsNeeded . "'><center>" . $this->subPackets[$idNum][0] . "</center></td>" . $formatRows;
+								$idNum++;
+								$partialBitsUsed = 0;
+								$idBitsRemaining = $idBitsRemaining - $idBitsNeeded;							
+							}
+							
+							else
+							{
+								//Add Partial ID To Current Row
+								$formatRows = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . $this->subPackets[$idNum][0] . "</center></td></tr><tr>" . $formatRows;
+								$partialBitsUsed = $idBitsRemaining;
+								$idBitsRemaining = 0;
+							}
+						}
+						else
+						{
+							//All IDs Have Been Added.  Pad The Rest Of The Row
+							$formatRows = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . "PADDING TEST" . "</center></td></tr><tr>" . $formatRows;
+						}
+						
+						//Prevent This Loop From Grinding Forever
+						if($loopCountSafty > 256)
+						{
+							break;
+						}
+					}
+					//Close Bit Row, Open ID Row
+					$formatRows = "</tr><tr>" . $formatRows;			
+					
+					//Add Format Bit Row					
+					for($j=8; $j<40; $j++)
+					{
+						$formatRows = "<td class='packetBitCell'><center>" . ($j % 8) . "</center></td>" . $formatRows;		
+					}					
+					
+					//Close Byte Row And Open Bits Row 
+					$formatRows = "</tr><tr>" . $formatRows;
+					
+					//Add Format Byte Row
+					for($j=0; $j<4; $j++)
+					{
+						$formatRows = "<td class='packetByteCell' colspan='8'><center>" . ($j + ($i*4) ) . "</center></td>" . $formatRows;		
+					}						
 				}
-				$packetFormatID .= "</tr>";
 				
-				$formatHeader .=$packetFormatID;
+				//Prepend Format Row Header
+				$formatRows = "<tr class='packetFormatRow'><td class='subPacketHeaderCell' rowspan='" . ($numFormatRows * 3) . "'>Format</td>" . $formatRows;
+				
+				//Build TOC
 				
 				//Build Array To Send To Renderer
-				$retVal = array($state, $this->name, $this->description, $this->size, $formatHeader, $packetBreakdown, $numCols);
+				$retVal = array($state, $nameRow, $descriptionRow, $sizeRow, $formatRows, $details, $numCols);
 				
 				//Clear Variables That Will Be Resused Here If Neccissary
 				$this->name = '';
@@ -293,90 +357,140 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				//$renderer->doc.= '</table></body></HTML>';
 				
 				//Separate Data
-				 $instName = $data[1];
-				 $instDescription = $data[2];
-				 $instSize = $data[3];
-				 $instFormat = $data[4];
-				 $instPacketBreakdown = $data[5];
+				 $instNameRow = $data[1];
+				 $instDescriptionRow = $data[2];
+				 $instSizeRow = $data[3];
+				 $instFormatRow = $data[4];
+				 $instDetails = $data[5];
 				 $instNumCols = $data[6];
 				 
 				 
 				 /************************************************************
 				 * Variables For HTML Generation
 				 *************************************************************/
-							 
+				
+
+				//Add Packet Table
 				$renderer->doc .= "
 					<head>
 							<style type='text/css'>
 
+								table.packetTOC
+								{  									
+									background-color: #FFFFFF;
+									border-style:none;	
+									border-spacing:0;								
+								}
+								
+								td.packetTOCCell
+								{
+									border-style:none;		
+								}
+								
 								table.packetTable
 								{  
-									width:100%;	
-									background-color: #EEEEEE;
+									width:100%;										
 									border-style:solid;	
-									border-spacing:0; 
-									border-width:0px;
-									border-bottom: solid 2px #CCCCCC;
+									border-width:2px;
+									border-color:#1C1C1C;
+									border-collapse:collapse;
+									font-size:.9em;
+									background-color: #EEEEEE;
+								}
+								
+								tr.packetFormatRow
+								{
+									
 								}
 								
 								td.packetNameCell
 								{ 									
 									text-align: center;
+									font-size:1.2em;
 									font-weight:bold;
-									background-color: #BBBBBB;
+									background-color: #A4A4A4;									
+									border-bottom-style=solid;
+									border-bottom-width:1px;
+									border-bottom-color:#1C1C1C;
+									border-right-style=solid;
+									border-right-width:2px;
+									border-right-color:#1C1C1C;
+									
+								}
+								td.packetDescriptionCell
+								{ 
+									
 								}
 								
-								td.packetFormatCell
+								td.packetSizeCell
+								{ 
+									border-bottom-style=solid;
+									border-bottom-width:1px;
+									border-bottom-color:#1C1C1C;
+								}
+								
+								td.packetByteCell
+								{ 									
+									text-align: center;
+									background-color: #A4A4A4;
+									font-weight:bold;	
+									border-width:1px;
+									border-color:#1C1C1C;										
+								}
+								
+								td.packetBitCell
 								{ 									
 									text-align: center;
 									background-color: #BBBBBB;
-									font-weight:bold;									
+									font-weight:bold;	
+									border-width:1px;
+									border-color:#1C1C1C;									
+								}
+								td.packetIdCell
+								{ 									
+									text-align: center;
+									font-weight:bold;		
+									background-color: #E6E6E6;
+									border-width:1px;
+									border-color:#1C1C1C;									
 								}
 								
 								td.subPacketHeaderCell
 								{ 
 									width:7%;
-									background-color: #BBBBBB;
-									border-right-style:none;
+									background-color: #A4A4A4;
 									text-align:right;
 									font-weight:bold;
+									border-right-style:solid;
+									border-right-width:1px;
+									border-right-color:#1C1C1C;
 								}
 								td.subPacketDetailsCell
 								{ 
-									border-left-style:none;									
+																		
 								}									
 							</style>								
 					</head>
 				
 				
-					<body>
-						<table class='packetTable'>
-							<tr>								
-								<td class='packetNameCell' colspan='" . ($instNumCols+1) . "'>
-									<center>" . $instName . "</center>
-								</td>
-							</tr>
-							<tr>
-								<td class='subPacketHeaderCell'>
-									Description
-								</td>
-								<td colspan='" . ($instNumCols) . "'>
-									" . $instDescription . "
-								</td>
-							</tr>
-							<tr>
-								<td class='subPacketHeaderCell'>
-									Size
-								</td>
-								<td colspan='" . ($instNumCols) . "'>
-									" . $instSize . "
-								</td>
-							</tr>								
-							" . $instFormat . "									
-							" . $instPacketBreakdown  . " 
+					<body>	
+						<table class = packetTOC>
+							<!--TOC-->	
+						</table>												
 						</table>
-					</body>				
-				";		
+						
+						<a id='".trim(str_replace(' ', '', $instName))."'></a>
+						<table class='packetTable'>
+							" . $instNameRow
+							  . $instDescriptionRow
+							  . $instSizeRow					
+							  . $instFormatRow								
+							  . $instDetails . "
+						</table>
+					</body>";
+
+				//Add To Packet TOC
+				$renderer->doc = preg_replace("/<!--TOC-->/", "<tr><td class=packetTOCCell><a href='#".trim(str_replace(' ', '', $instName))."'>" . $instName ." </a></tr></td><!--TOC-->", $renderer->doc, 1);					
 				
 				break;
 			  case DOKU_LEXER_SPECIAL :
