@@ -1,7 +1,7 @@
 <?php
 /********************************************************************************************************************************
 *
-* LabVIEW Hacker Download Button Plugin
+* LabVIEW Hacker Packet Plugin
 *
 * Written By Sammy_K
 * www.labviewhacker.com
