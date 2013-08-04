@@ -319,6 +319,8 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				$this->description = '';
 				$this->size = '';
 				$this->format = '';
+				$this->subPackets = '';
+				$this->allPackets = '';
 				
 				return $retVal;
 				break;
@@ -379,7 +381,8 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							<style type='text/css'>
 
 								table.packetTOC
-								{  									
+								{  			
+									width:100%;
 									background-color: #FFFFFF;
 									border-style:none;	
 									border-spacing:0;								
@@ -478,7 +481,9 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				
 					<body>	
 						<table class = packetTOC>
-							<!--TOC-->	
+							<ul>
+								<!--TOC-->	
+							</ul>
 						</table>												
 						</table>
 						
@@ -493,7 +498,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 					</body>";
 
 				//Add To Packet TOC
-				$renderer->doc = preg_replace("/<!--TOC-->/", "<tr><td class=packetTOCCell><a href='#".trim(str_replace(' ', '', $instPacketName))."'>" . $instPacketName ." </a></tr></td><!--TOC-->", $renderer->doc, 1);					
+				$renderer->doc = preg_replace("/<!--TOC-->/", "<tr><td class=packetTOCCell><li><a href='#".trim(str_replace(' ', '', $instPacketName))."'>" . $instPacketName ." </a></li></tr></td><!--TOC-->", $renderer->doc, 1);					
 				
 				break;
 			  case DOKU_LEXER_SPECIAL :
