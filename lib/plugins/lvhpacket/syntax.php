@@ -107,7 +107,7 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							$subPacketHeaderNum = substr($iVal, 11);		//Get Number At End Of String
 							$this->subPackets[$subPacketHeaderNum][0] = $value;							
 						}
-						break;
+						break;					
 					case (preg_match('/subpacketsize[0-9]*/', $token, $pmSubPacketSize)? true : false ) :
 						foreach($pmSubPacketSize as $iVal)
 						{
@@ -130,9 +130,19 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 								$this->subPackets[$subPacketDetailsNum][0] = '';
 							}
 							$this->subPackets[$subPacketDetailsNum][2] = $value;
-						}
-						//$this->detailedText[] = $value;
+						}						
 						break;
+					case (preg_match('/subpacketvalue[0-9]*/', $token, $pmSubPacketDetails)? true : false ) :
+						foreach($pmSubPacketDetails as $iVal)
+						{
+							$subPacketDetailsNum = substr($iVal, 14);		//Get Number At End Of String
+							//If Packet Header Has No Data Insert Empty Element For Header
+							if(count($this->subPackets[$subPacketDetailsNum]) == 0)
+							{
+								$this->subPackets[$subPacketDetailsNum][0] = '';
+							}
+							$this->subPackets[$subPacketDetailsNum][3] = $value;
+						}
 						
 					default:
 						break;
@@ -259,7 +269,19 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							{
 								
 								//Add Entire ID To Current Row
-								$formatRows = "<td class='packetIdCell' colspan='" . $idBitsNeeded . "'><center>" . $this->subPackets[$idNum][0] . "</center></td>" . $formatRows;
+								$subPacketIDCell = "<td class='packetIdCell' colspan='" . $idBitsNeeded . "'><center>" . $this->subPackets[$idNum][0]; 
+								//Add Value If Specified
+								if($this->subPackets[$idNum][3] != '')
+								{
+									$subPacketIDCell .= ": " . $this->subPackets[$idNum][3];
+								}
+								
+								//Close Sub Packet Cell
+								$subPacketIDCell .= "</center></td>";
+								 
+								//Add To formatRows
+								$formatRows = $subPacketIDCell . $formatRows;
+								
 								$idNum++;
 								$partialBitsUsed = 0;
 								$idBitsRemaining = $idBitsRemaining - $idBitsNeeded;							
@@ -268,7 +290,18 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 							else
 							{
 								//Add Partial ID To Current Row
-								$formatRows = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . $this->subPackets[$idNum][0] . "</center></td>" . $formatRows;
+								$subPacketIDCell = "<td class='packetIdCell' colspan='" . $idBitsRemaining . "'><center>" . $this->subPackets[$idNum][0];
+								//Add Value If Specified
+								if($this->subPackets[$idNum][3] != '')
+								{
+									$subPacketIDCell .= ": " . $this->subPackets[$idNum][3];
+								}
+								
+								//Close Sub Packet Cell
+								$subPacketIDCell .= "</center></td>";
+								 
+								//Add To formatRows
+								$formatRows = $subPacketIDCell . $formatRows;
 								$partialBitsUsed = $idBitsRemaining;
 								$idBitsRemaining = 0;
 							}
