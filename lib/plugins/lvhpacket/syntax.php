@@ -54,6 +54,13 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 	protected $subPackets = array();	
 	protected $allPackets = array();
 	
+	protected $subPacketNum = 0;
+	protected $subPacketIdNum = 0;
+	protected $subPacketValueNum = 0;
+	protected $subPacketSizeNum = 0;
+	protected $subPacketDetailsNum = 0;
+	
+	
     /********************************************************************************************************************************************
 	** Plugin Configuration
 	********************************************************************************************************************************************/			
@@ -100,54 +107,83 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 						break;	
 					case 'format':						
 						$this->format = $value;
-						break;
-					case (preg_match('/subpacketid[0-9]*/', $token, $pmSubpacketHeader)? true : false ) :						
-						foreach($pmSubpacketHeader as $iVal)
-						{
-							$subPacketHeaderNum = substr($iVal, 11);		//Get Number At End Of String
-							$this->subPackets[$subPacketHeaderNum][0] = $value;							
-						}
 						break;					
-					case (preg_match('/subpacketsize[0-9]*/', $token, $pmSubPacketSize)? true : false ) :
-						foreach($pmSubPacketSize as $iVal)
+					case 'subpacketid' :					
+						if($this->subPacketIdNum != $this->subPacketNum)
 						{
-							$subPacketSizeNum = substr($iVal, 13);		//Get Number At End Of String
-							//If Packet Header Has No Data Insert Empty Element For Header
-							if(count($this->subPackets[$subPacketSizeNum]) == 0)
-							{
-								$this->subPackets[$subPacketSizeNum][0] = '';
-							}
-							$this->subPackets[$subPacketSizeNum][1] = $value;
+							//New Subpacket
+							$this->subPacketNum++;
+							$this->subPacketIdNum = $this->subPacketNum;
+							$this->subPacketValueNum = $this->subPacketNum;
+							$this->subPacketSizeNum = $this->subPacketNum;
+							$this->subPacketDetailsNum = $this->subPacketNum;
 						}
-						break;
-					case (preg_match('/subpacketdetails[0-9]*/', $token, $pmSubPacketDetails)? true : false ) :
-						foreach($pmSubPacketDetails as $iVal)
+						//Add New Subpacket ID
+						$this->subPackets[$this->subPacketNum][0] = $value;
+						$this->subPacketIdNum++;	
+						break;		
+					case 'subpacketsize' :
+						if($this->subPacketSizeNum != $this->subPacketNum)
 						{
-							$subPacketDetailsNum = substr($iVal, 16);		//Get Number At End Of String
-							//If Packet Header Has No Data Insert Empty Element For Header
-							if(count($this->subPackets[$subPacketDetailsNum]) == 0)
-							{
-								$this->subPackets[$subPacketDetailsNum][0] = '';
-							}
-							$this->subPackets[$subPacketDetailsNum][2] = $value;
-						}						
-						break;
-					case (preg_match('/subpacketvalue[0-9]*/', $token, $pmSubPacketDetails)? true : false ) :
-						foreach($pmSubPacketDetails as $iVal)
+							//New Subpacket
+							$this->subPacketNum++;
+							$this->subPacketIdNum = $this->subPacketNum;
+							$this->subPacketValueNum = $this->subPacketNum;
+							$this->subPacketSizeNum = $this->subPacketNum;
+							$this->subPacketDetailsNum = $this->subPacketNum;
+						}	
+						//-------Add New Subpacket Size-------//
+						//Create New Subpacket Entry If Necissary
+						if(count($this->subPackets[$this->subPacketNum]) == 0)
 						{
-							$subPacketDetailsNum = substr($iVal, 14);		//Get Number At End Of String
-							//If Packet Header Has No Data Insert Empty Element For Header
-							if(count($this->subPackets[$subPacketDetailsNum]) == 0)
-							{
-								$this->subPackets[$subPacketDetailsNum][0] = '';
-							}
-							$this->subPackets[$subPacketDetailsNum][3] = $value;
+							$this->subPackets[$subPacketNum][0] = '';
 						}
+						$this->subPackets[$this->subPacketNum][1] = $value;
+						$this->subPacketSizeNum++;	
+						break;
+					case 'subpacketdetails':
+						if($this->subPacketDetailsNum != $this->subPacketNum)
+						{
+							//New Subpacket
+							$this->subPacketNum++;
+							$this->subPacketIdNum = $this->subPacketNum;
+							$this->subPacketValueNum = $this->subPacketNum;
+							$this->subPacketSizeNum = $this->subPacketNum;
+							$this->subPacketDetailsNum = $this->subPacketNum;
+						}	
+						//Add New Subpacket Size
+						//Create New Subpacket Entry If Necissary
+						if(count($this->subPackets[$this->subPacketNum]) == 0)
+						{
+							$this->subPackets[$this->subPacketNum][0] = '';
+						}
+						$this->subPackets[$this->subPacketNum][2] = $value;
+						$this->subPacketDetailsNum++;	
+						break;
+					case 'subpacketvalue' :
+						if($this->subPacketValueNum != $this->subPacketNum)
+						{
+							//New Subpacket
+							$this->subPacketNum++;
+							$this->subPacketIdNum = $this->subPacketNum;
+							$this->subPacketValueNum = $this->subPacketNum;
+							$this->subPacketSizeNum = $this->subPacketNum;
+							$this->subPacketDetailsNum = $this->subPacketNum;
+						}	
+						//Add New Subpacket Size
+						//Create New Subpacket Entry If Necissary
+						if(count($this->subPackets[$this->subPacketNum]) == 0)
+						{
+							$this->subPackets[$this->subPacketNum][0] = '';
+						}
+						$this->subPackets[$this->subPacketNum][3] = $value;
+						$this->subPacketValueNum++;	
+						break;
 						
 					default:
 						break;
 				}
-				return array($state, $value);
+				return array($state, $value); 
 				break;
 			case DOKU_LEXER_UNMATCHED :
 				break;
@@ -240,6 +276,10 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				}
 				
 				//Build Each Packet Format Row
+				
+				//TODO - Get Rid of This Reverse And Build The Table Top To Bottom.  This Was Implemented This Way Because The Bytes Used To Be Right Justified In The Table But Are Now Top / Left Justified
+				$this->subPackets = array_reverse($this->subPackets);
+				
 				$formatRows = "";
 				$partialBitsUsed = 0;
 				$idNum = 0;
@@ -335,7 +375,15 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 					//Add Format Byte Row
 					for($j=0; $j<4; $j++)
 					{
-						$formatRows = "<td class='packetByteCell' colspan='8'><center>" . ($j + ($i*4) ) . "</center></td>" . $formatRows;		
+						$byteNum = $packetNumBytes - ( ($i*4) + $j +1 );
+						if($byteNum >= 0)
+						{
+							$formatRows = "<td class='packetByteCell' colspan='8'><center>" . $byteNum . "</center></td>" . $formatRows;		
+						}
+						else
+						{
+							$formatRows = "<td class='packetByteCell' colspan='8'><center>-</center></td>" . $formatRows;		
+						}
 					}						
 				}
 				
@@ -354,6 +402,12 @@ class syntax_plugin_lvhpacket extends DokuWiki_Syntax_Plugin
 				$this->format = '';
 				$this->subPackets = '';
 				$this->allPackets = '';
+				
+				$this->subPacketNum = 0;
+				$this->subPacketIdNum = 0;
+				$this->subPacketValueNum = 0;
+				$this->subPacketSizeNum = 0;
+				$this->subPacketDetailsNum = 0;
 				
 				return $retVal;
 				break;
