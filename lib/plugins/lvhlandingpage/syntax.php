@@ -114,31 +114,31 @@ class syntax_plugin_lvhlandingpage extends DokuWiki_Syntax_Plugin
 						$this->forumPath = $value;
 						break;	
 					case 'description':						
-						$this->description = $value;
+						$this->description = p_render('xhtml',p_get_instructions($value));
 						break;				
 					case 'logo path':						
 						$this->logoPath = lvh_getImageURL($value);
 						break;
 					case 'how it works':						
-						$this->howItWorks = $value;
+						$this->howItWorks = p_render('xhtml',p_get_instructions($value));
 						break;	
 					case 'how it works path':						
 						$this->howItWorksPath = stripWikiLinkSyntax($value);
 						break;
 					case 'explore features':						
-						$this->exploreFeatures = $value;
+						$this->exploreFeatures = p_render('xhtml',p_get_instructions($value));
 						break;	
 					case 'explore features path':						
 						$this->exploreFeaturesPath = stripWikiLinkSyntax($value);
 						break;	
 					case 'see it in action':						
-						$this->seeItInAction = $value;
+						$this->seeItInAction = p_render('xhtml',p_get_instructions($value));
 						break;	
 					case 'see it in action path':						
 						$this->seeItInActionPath = stripWikiLinkSyntax($value);
 						break;	
 					case 'getting started':						
-						$this->gettingStarted = $value;
+						$this->gettingStarted = p_render('xhtml',p_get_instructions($value));
 						break;
 					case 'download url':
 						$this->downloadURL = lvh_forceExternalLink($value);

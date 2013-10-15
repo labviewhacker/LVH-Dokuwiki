@@ -172,16 +172,14 @@ class syntax_plugin_lvhhardware extends DokuWiki_Syntax_Plugin
 								table.hwContainerTable
 								{
 									background:transparent;
-									float: left;
 									border-collapse:collapse; 
 									border:0px solid black;
 									border-radius: 10px;									
-								}								
-								table.hwContainerTable td:hover
-								{
-									float: left;
-									border-radius: 10px;									
 								}
+								table.hwcontainerTable td:hover
+								{																		
+								}
+								
 								table.hwContainerTable td 
 								{ 									
 									border:0px;

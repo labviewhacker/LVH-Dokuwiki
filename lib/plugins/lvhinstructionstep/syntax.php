@@ -52,6 +52,7 @@ class syntax_plugin_lvhinstructionstep extends DokuWiki_Syntax_Plugin
 	protected $title = '';
 	protected $description = '';
 	protected $align = '';
+	protected $expanded = '';
 	protected $image = '';
 	protected $imageSize = '';
 	protected $subSteps = array();
@@ -105,6 +106,9 @@ class syntax_plugin_lvhinstructionstep extends DokuWiki_Syntax_Plugin
 						break;	
 					case 'align':						
 						$this->align = strtolower($value);
+						break;
+					case 'expanded':						
+						$this->expanded = strtolower($value);
 						break;
 					//Detailed Image(s)
 					case (preg_match('/detailedimage[0-9]*/', $token, $pmDetailedImageRes)? true : false ) :						
@@ -182,7 +186,7 @@ class syntax_plugin_lvhinstructionstep extends DokuWiki_Syntax_Plugin
 				//isntID Is A Unique ID That Will Be Used To Identifiy The Step Instance
 				$iD = preg_replace("/[^a-zA-Z]+/", "", $this->title);
 				
-				$retVal = array($state, $this->title, $this->description, $this->image, $this->imageSize, $this->subStepElement, $this->align, $this->stepNum, $details, $iD);
+				$retVal = array($state, $this->title, $this->description, $this->image, $this->imageSize, $this->subStepElement, $this->align, $this->stepNum, $details, $iD, $this->expanded);
 				
 				//Clear Variables That Will Be Reused On Next Step(s)
 				$this->detailedImageText = array();
@@ -237,7 +241,8 @@ class syntax_plugin_lvhinstructionstep extends DokuWiki_Syntax_Plugin
 				 $instAlign = $data[6];
 				 $instStepNum = $data[7];
 				 $instDetails = $data[8];
-				 $instID = $data[9];	
+				 $instID = $data[9];
+				 $instExpanded = $data[10];
 				
 				$renderer->doc .= "
 					<head>
@@ -330,8 +335,7 @@ class syntax_plugin_lvhinstructionstep extends DokuWiki_Syntax_Plugin
 						
 						
 						function toggleDisplay(tbl) 
-						{
-							
+						{							
 							var tblRows = tbl.rows;							
 							if(tblRows.length > 2)
 							{

@@ -181,9 +181,7 @@ class syntax_plugin_lvhsoftware extends DokuWiki_Syntax_Plugin
 									border-radius: 10px;									
 								}								
 								table.containerTable td:hover
-								{
-									float: left;
-									border-radius: 10px;									
+								{																		
 								}
 								table.containerTable td 
 								{ 									
